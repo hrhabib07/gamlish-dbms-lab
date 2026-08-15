@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  student
+  admin
+}
+
+model User {
+  id        Int      @id @default(autoincrement()) @map("User_ID")
+  name      String   @map("Name") @db.VarChar(100)
+  email     String   @unique @map("Email") @db.VarChar(150)
+  password  String   @map("Password") @db.VarChar(255)
+  role      Role     @default(student) @map("Role")
+  createdAt DateTime @default(now()) @map("Created_At")
+  updatedAt DateTime @updatedAt @map("Updated_At")
+
+  progress UserProgress[]
+  attempts QuizAttempt[]
+
+  @@map("Users")
+}
+
+model Level {
+  id          Int      @id @default(autoincrement()) @map("Level_ID")
+  levelNumber Int      @unique @map("Level_Number")
+  title       String   @map("Title") @db.VarChar(150)
+  createdAt   DateTime @default(now()) @map("Created_At")
+  updatedAt   DateTime @updatedAt @map("Updated_At")
+
+  lessons Lesson[]
+
+  @@map("Levels")
+}
+
+model Lesson {
+  id            Int      @id @default(autoincrement()) @map("Lesson_ID")
+  levelId       Int      @map("Level_ID")
+  title         String   @map("Title") @db.VarChar(150)
+  videoUrl      String   @map("Video_URL") @db.VarChar(500)
+  lessonContent String   @map("Lesson_Content") @db.Text
+  createdAt     DateTime @default(now()) @map("Created_At")
+  updatedAt     DateTime @updatedAt @map("Updated_At")
+
+  level     Level           @relation(fields: [levelId], references: [id], onDelete: Restrict)
+  questions QuizQuestion[]
+  progress  UserProgress[]
+
+  @@map("Lessons")
+}
+
+model QuizQuestion {
+  id        Int      @id @default(autoincrement()) @map("Question_ID")
+  lessonId  Int      @map("Lesson_ID")
+  question  String   @map("Question") @db.Text
+  createdAt DateTime @default(now()) @map("Created_At")
+  updatedAt DateTime @updatedAt @map("Updated_At")
+
+  lesson   Lesson        @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  options  QuizOption[]
+  attempts QuizAttempt[]
+
+  @@map("QuizQuestions")
+}
+
+model QuizOption {
+  id         Int      @id @default(autoincrement()) @map("Option_ID")
+  questionId Int      @map("Question_ID")
+  optionText String   @map("Option_Text") @db.VarChar(255)
+  isCorrect  Boolean  @default(false) @map("Is_Correct")
+  createdAt  DateTime @default(now()) @map("Created_At")
+  updatedAt  DateTime @updatedAt @map("Updated_At")
+
+  question QuizQuestion  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  attempts QuizAttempt[]
+
+  @@map("QuizOptions")
+}
+
+model UserProgress {
+  id        Int      @id @default(autoincrement()) @map("Progress_ID")
+  userId    Int      @map("User_ID")
+  lessonId  Int      @map("Lesson_ID")
+  completed Boolean  @default(false) @map("Completed")
+  createdAt DateTime @default(now()) @map("Created_At")
+  updatedAt DateTime @updatedAt @map("Updated_At")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@map("UserProgress")
+}
+
+model QuizAttempt {
+  id               Int      @id @default(autoincrement()) @map("Attempt_ID")
+  userId           Int      @map("User_ID")
+  questionId       Int      @map("Question_ID")
+  selectedOptionId Int      @map("Selected_Option")
+  score            Int      @map("Score")
+  createdAt        DateTime @default(now()) @map("Created_At")
+  updatedAt        DateTime @updatedAt @map("Updated_At")
+
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question       QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  selectedOption QuizOption   @relation(fields: [selectedOptionId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, questionId])
+  @@map("QuizAttempts")
+}

@@ -1,0 +1,73 @@
+// Paste into https://dbdiagram.io and export PNG/PDF for the report.
+
+Table Users {
+  User_ID int [pk, increment]
+  Name varchar(100) [not null]
+  Email varchar(150) [unique, not null]
+  Password varchar(255) [not null]
+  Role varchar(20) [not null, default: 'student', note: 'student | admin']
+  Created_At datetime [not null]
+  Updated_At datetime [not null]
+}
+
+Table Levels {
+  Level_ID int [pk, increment]
+  Level_Number int [unique, not null]
+  Title varchar(150) [not null]
+  Created_At datetime [not null]
+  Updated_At datetime [not null]
+}
+
+Table Lessons {
+  Lesson_ID int [pk, increment]
+  Level_ID int [not null, ref: > Levels.Level_ID]
+  Title varchar(150) [not null]
+  Video_URL varchar(500) [not null]
+  Lesson_Content text [not null]
+  Created_At datetime [not null]
+  Updated_At datetime [not null]
+}
+
+Table QuizQuestions {
+  Question_ID int [pk, increment]
+  Lesson_ID int [not null, ref: > Lessons.Lesson_ID]
+  Question text [not null]
+  Created_At datetime [not null]
+  Updated_At datetime [not null]
+}
+
+Table QuizOptions {
+  Option_ID int [pk, increment]
+  Question_ID int [not null, ref: > QuizQuestions.Question_ID]
+  Option_Text varchar(255) [not null]
+  Is_Correct boolean [not null, default: false]
+  Created_At datetime [not null]
+  Updated_At datetime [not null]
+}
+
+Table UserProgress {
+  Progress_ID int [pk, increment]
+  User_ID int [not null, ref: > Users.User_ID]
+  Lesson_ID int [not null, ref: > Lessons.Lesson_ID]
+  Completed boolean [not null, default: false]
+  Created_At datetime [not null]
+  Updated_At datetime [not null]
+
+  indexes {
+    (User_ID, Lesson_ID) [unique]
+  }
+}
+
+Table QuizAttempts {
+  Attempt_ID int [pk, increment]
+  User_ID int [not null, ref: > Users.User_ID]
+  Question_ID int [not null, ref: > QuizQuestions.Question_ID]
+  Selected_Option int [not null, ref: > QuizOptions.Option_ID]
+  Score int [not null, note: '1 if correct, 0 if wrong']
+  Created_At datetime [not null]
+  Updated_At datetime [not null]
+
+  indexes {
+    (User_ID, Question_ID) [unique]
+  }
+}

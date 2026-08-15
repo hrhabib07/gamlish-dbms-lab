@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  --color-navy: #0f172a;
+  --color-steel: #0ea5e9;
+  --color-steel-deep: #0369a1;
+}
+
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --primary: #0f172a;
+  --radius: 0.9rem;
+}
+
+* {
+  border-color: var(--border);
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(56, 189, 248, 0.16), transparent 55%),
+    linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+.cta-glow {
+  background-image: linear-gradient(90deg, #38bdf8, #2563eb);
+  box-shadow: 0 14px 40px -14px rgba(56, 189, 248, 0.55);
+}
+
+.cta-glow:hover {
+  background-image: linear-gradient(90deg, #7dd3fc, #3b82f6);
+}
+
+.mission-card {
+  background-image: linear-gradient(160deg, #0f172a 0%, #0b1220 55%, #020617 100%);
+}
+
+.reward-pill {
+  background: #fbbf24;
+  color: #451a03;
+  box-shadow: 0 10px 24px -10px rgba(245, 158, 11, 0.55);
+}
