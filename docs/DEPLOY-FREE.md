@@ -50,13 +50,13 @@ Do not commit `backend/.env` or `frontend/.env.local`.
 1. Sign up at [https://aiven.io](https://aiven.io).
 2. Create service · **MySQL** · free tier.
 3. Open the service · copy the connection string.
-4. For Prisma, use this form (SSL):
+4. For Prisma on Render, use this form (TLS on, skip Aiven CA verify):
 
 ```text
-mysql://USER:PASSWORD@HOST:PORT/defaultdb?sslaccept=strict
+mysql://USER:PASSWORD@HOST:PORT/defaultdb?sslaccept=accept_invalid_certs
 ```
 
-If Aiven shows `ssl-mode=REQUIRED`, change that part to `sslaccept=strict`.
+If Aiven shows `ssl-mode=REQUIRED` or `sslaccept=strict`, change that part to `sslaccept=accept_invalid_certs`. `strict` fails on Render with P1011 (self-signed certificate in certificate chain).
 
 Keep this string private. You will paste it into Render.
 

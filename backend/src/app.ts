@@ -10,13 +10,7 @@ export const app = express();
 
 app.use(
   cors({
-    origin(origin, callback) {
-      if (!origin || env.clientOrigins.includes(origin)) {
-        callback(null, true);
-        return;
-      }
-      callback(null, false);
-    },
+    origin: true,
     credentials: true,
   }),
 );

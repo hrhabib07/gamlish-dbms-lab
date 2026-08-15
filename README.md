@@ -1,20 +1,28 @@
 # Gamlish DBMS Lab
 
 **Gamlish: A Game-Based English Learning Platform**  
-CSE 224 · Database Management System Lab · Metropolitan University · CSE 61A
+CSE 224 · Database Management System Lab  
+Department of Computer Science and Engineering · Metropolitan University · Section CSE 61A
 
-A MySQL prototype of [Gamlish](https://gamlish.com). Students register, play **Mission 01 · Word Order**, submit a 10-question quiz, and save scores. Admins manage users, lessons, and questions.
+A deployed MySQL prototype of [Gamlish](https://gamlish.com). Students register, play **Mission 01 · Word Order**, complete a 10-question quiz one item at a time, and save scores. Admins manage users, lessons, questions, progress, and results.
 
-This folder is the **course project only**. The live product is a separate system.
+This repository is the **course project only**. The commercial product on gamlish.com is a separate system (MongoDB). Do not mix the two.
 
-| | Link |
+---
+
+## Live links
+
+| Item | URL |
 |---|---|
+| Lab website (Vercel) | [https://gamlish-dbms-lab.vercel.app](https://gamlish-dbms-lab.vercel.app) |
+| Lab API (Render) | [https://gamlish-dbms-lab.onrender.com/api/health](https://gamlish-dbms-lab.onrender.com/api/health) |
+| ER diagram | [https://dbdiagram.io/d/gamlish_dbms_lab-6a803de8e093539a9ebf8e38](https://dbdiagram.io/d/gamlish_dbms_lab-6a803de8e093539a9ebf8e38) |
 | Real Gamlish | [https://gamlish.com](https://gamlish.com) |
-| Live ER diagram | [https://dbdiagram.io/d/gamlish_dbms_lab-6a803de8e093539a9ebf8e38](https://dbdiagram.io/d/gamlish_dbms_lab-6a803de8e093539a9ebf8e38) |
-| Local website | http://localhost:3001 |
-| Local API | http://localhost:4000/api/health |
+| Source code | [https://github.com/hrhabib07/gamlish-dbms-lab](https://github.com/hrhabib07/gamlish-dbms-lab) |
 
-A gold bar on every lab page opens **gamlish.com**.
+A gold bar on every lab page opens **https://gamlish.com**.
+
+The first API request after idle time can take 30-60 seconds. Render’s free plan sleeps the backend.
 
 ---
 
@@ -30,42 +38,84 @@ Submitted to: **Samia Rahman Rima**, Lecturer, Department of CSE
 
 ---
 
-## What you can do
+## Where the data is stored
 
-**Student**
-- Register a new account (writes to `Users`)
-- Log in with JWT
-- Open Level 1 · watch the lesson video · read notes
-- Play 10 quiz questions, **one at a time**
-- See the score. Each answer is stored in `QuizAttempts`
+**The live lab does not store data in this folder, and it does not use MongoDB.**
 
-**Admin**
-- Log in and open the dashboard
-- Create users
-- View progress and quiz scores (`SUM(Score)`)
-- Add / edit / delete lessons
-- Add / edit / delete quiz questions and options
+| Environment | Database | Where the rows live | How to open them |
+|---|---|---|---|
+| **Deployed lab** (teacher / public) | **MySQL 8** on **Aiven** | Cloud service `mysql-ac05563`, database `defaultdb`, Bangalore | [Aiven Console](https://console.aiven.io) · project **gamlish** · service **mysql-ac05563** · **Databases** / Query editor, or DBeaver using the Aiven URI |
+| **This PC only** (optional) | MySQL on **XAMPP** | Your machine, database `gamlish_dbms` | XAMPP + DBeaver / phpMyAdmin |
+| **Real Gamlish** (not this course) | **MongoDB** | Atlas / production cluster of gamlish.com | MongoDB Atlas. Not used by this lab |
+
+Think of it this way:
+
+- **gamlish.com** → MongoDB (the real product)
+- **This CSE 224 lab** → MySQL on Aiven (the course database)
+- **`d:\ielts_habib\...`** → source code only. Users, scores, and quiz answers are **not** saved as files in the project folder
+
+When a student registers on [https://gamlish-dbms-lab.vercel.app](https://gamlish-dbms-lab.vercel.app):
+
+1. The Vercel site calls the Render API.
+2. The API writes a row into Aiven MySQL table `Users`.
+3. Quiz answers go to `QuizAttempts`. Progress goes to `UserProgress`.
+
+To show the teacher the live data: log in to Aiven → **gamlish** → **mysql-ac05563** → browse `Users`, `QuizAttempts`, and the other tables. That is the MySQL equivalent of opening a collection in MongoDB Atlas.
+
+Host (no password in this file):
+
+```text
+mysql-ac05563-gamlish.c.aivencloud.com:11383
+database: defaultdb
+```
 
 ---
 
-## Database
+## How the live system is hosted
 
-### Live ER diagram
+```text
+Browser
+   │
+   ▼
+Vercel          Next.js frontend
+gamlish-dbms-lab.vercel.app
+   │  HTTPS  /api/...
+   ▼
+Render          Express + Prisma API
+gamlish-dbms-lab.onrender.com
+   │  MySQL + TLS
+   ▼
+Aiven           MySQL 8 · defaultdb
+mysql-ac05563   Bangalore
+```
 
-Open and export from here:
+| Layer | Service | Role |
+|---|---|---|
+| Frontend | Vercel | Pages, login, quiz UI |
+| Backend | Render | Auth, CRUD, scoring |
+| Database | Aiven MySQL | Persistent rows (users, lessons, attempts) |
+| ORM | Prisma | Maps TypeScript to the 7 MySQL tables |
 
-**[gamlish_dbms_lab on dbdiagram.io](https://dbdiagram.io/d/gamlish_dbms_lab-6a803de8e093539a9ebf8e38)**
+---
 
-Local copies for the PDF:
+## Features
 
-- `docs/er-diagram.dbml` · same model as the live link
-- `docs/er-diagram.md` · Mermaid version
-- `docs/er-diagram.png` · image
-- `docs/schema.sql` · `CREATE TABLE` script
-- `docs/normalization.md` · 1NF, 2NF, 3NF
-- `docs/sample-queries.sql` · joins for viva
+**Student**
+- Register (insert into `Users`)
+- Log in with JWT
+- Mission 01: video, notes, 10-question quiz (one question at a time)
+- Score saved in `QuizAttempts` (`Score` is 0 or 1 per question)
 
-### Tables
+**Admin**
+- Create users
+- View progress and scores (`SUM(Score)`)
+- Add / edit / delete lessons and quiz questions
+
+---
+
+## Database design
+
+**Live ER diagram:** [dbdiagram.io/d/gamlish_dbms_lab-6a803de8e093539a9ebf8e38](https://dbdiagram.io/d/gamlish_dbms_lab-6a803de8e093539a9ebf8e38)
 
 | Table | Purpose |
 |---|---|
@@ -75,9 +125,9 @@ Local copies for the PDF:
 | `QuizQuestions` | Question text. `Lesson_ID` FK |
 | `QuizOptions` | Four options. `Is_Correct`. `Question_ID` FK |
 | `UserProgress` | One row per user + lesson. `Completed` |
-| `QuizAttempts` | One row per user + question. `Selected_Option` FK to `QuizOptions`. `Score` is 0 or 1 |
+| `QuizAttempts` | One row per user + question. `Selected_Option` FK. `Score` 0 or 1 |
 
-Lesson total score is not stored as a copy. It is:
+Lesson total is not copied onto `Users`. It is computed:
 
 ```sql
 SELECT u.Name, l.Title, SUM(a.Score) AS Total_Score
@@ -88,6 +138,8 @@ JOIN Lessons l ON l.Lesson_ID = q.Lesson_ID
 GROUP BY u.User_ID, u.Name, l.Lesson_ID, l.Title;
 ```
 
+Report files: `docs/schema.sql`, `docs/normalization.md`, `docs/sample-queries.sql`, `docs/er-diagram.dbml`.
+
 ---
 
 ## Tech stack
@@ -96,62 +148,47 @@ GROUP BY u.User_ID, u.Name, l.Lesson_ID, l.Title;
 |---|---|
 | Frontend | Next.js (App Router), TypeScript, Tailwind CSS |
 | Backend | Node.js, Express, TypeScript |
-| Database | MySQL + Prisma ORM |
+| Database | MySQL 8, Prisma ORM |
 | Auth | JWT, bcrypt, Zod |
+| Hosting | Vercel, Render, Aiven |
 | Local tools | XAMPP, DBeaver |
 
 ---
 
-## Run on this PC
+## Demo accounts
 
-### 1. Start MySQL
-
-1. Open **XAMPP Control Panel** (`C:\xampp\xampp-control.exe`).
-2. Click **Start** next to **MySQL**. Wait until it is green.
-
-Default URL (empty XAMPP root password):
-
-```text
-mysql://root:@localhost:3306/gamlish_dbms
-```
-
-If root has a password, edit `backend/.env`.
-
-### 2. Create tables and seed
-
-```bash
-cd d:\ielts_habib\2026\web_project\gamlish-dbms-lab
-npm install
-npm run install:all
-npm run db:setup
-```
-
-This creates `gamlish_dbms`, pushes the 7 tables, and seeds Mission 01 plus demo accounts.
-
-### 3. Start the app
-
-```bash
-npm run dev
-```
-
-| App | URL |
-|---|---|
-| Website | http://localhost:3001 |
-| API health | http://localhost:4000/api/health |
-
-Ports **3001** and **4000** are used so this lab does not clash with live Gamlish.
-
----
-
-## Demo logins
+Use these on the **live lab** or on localhost after seed.
 
 | Role | Email | Password |
 |---|---|---|
 | Admin | admin@gamlish.test | Admin@123 |
 | Student | student@gamlish.test | Student@123 |
 
-Or open http://localhost:3001/register and create a new student.  
-Admin can also create users at **Admin → Users**.
+Anyone can also register at `/register`. Admin can create users at **Admin → Users**.
+
+---
+
+## Run on this PC (optional)
+
+Local run uses **XAMPP MySQL**, a second copy of the data. It is not the Aiven database the teacher sees.
+
+1. Start **MySQL** in XAMPP Control Panel.
+2. Then:
+
+```bash
+cd d:\ielts_habib\2026\web_project\gamlish-dbms-lab
+npm install
+npm run install:all
+npm run db:setup
+npm run dev
+```
+
+| App | Local URL |
+|---|---|
+| Website | http://localhost:3001 |
+| API | http://localhost:4000/api/health |
+
+Default local URL: `mysql://root:@localhost:3306/gamlish_dbms`
 
 ---
 
@@ -159,8 +196,8 @@ Admin can also create users at **Admin → Users**.
 
 ```text
 gamlish-dbms-lab/
-  frontend/          Next.js UI (port 3001)
-  backend/           Express + Prisma (port 4000)
+  frontend/          Next.js (Vercel)
+  backend/           Express + Prisma (Render)
   backend/prisma/    schema.prisma + seed.ts
   docs/              ER, SQL, normalization, deploy notes
   README.md          this file
@@ -168,19 +205,13 @@ gamlish-dbms-lab/
 
 ---
 
-## Report checklist
-
-Use these in the PDF and viva:
+## Viva and report
 
 1. Cover page from the proposal
-2. Live ER: [dbdiagram.io/d/gamlish_dbms_lab-6a803de8e093539a9ebf8e38](https://dbdiagram.io/d/gamlish_dbms_lab-6a803de8e093539a9ebf8e38)
-3. Table list + PK/FK from `docs/schema.sql`
-4. Normalization from `docs/normalization.md`
-5. Screenshots: register, login, video, one-question quiz, score, admin CRUD
-6. Sample SQL from `docs/sample-queries.sql`
-7. More notes in `docs/report-notes.md`
-
-Teacher may ask:
+2. ER: [dbdiagram.io/d/gamlish_dbms_lab-6a803de8e093539a9ebf8e38](https://dbdiagram.io/d/gamlish_dbms_lab-6a803de8e093539a9ebf8e38)
+3. Show live data in **Aiven** (not MongoDB)
+4. Screenshots: register, login, video, one-question quiz, score, admin CRUD
+5. SQL from `docs/sample-queries.sql`
 
 ```sql
 SHOW TABLES;
@@ -189,26 +220,14 @@ SHOW CREATE TABLE QuizAttempts;
 SELECT * FROM Users;
 ```
 
----
-
-## Public URL for the teacher
-
-`localhost` only works on this PC. To let the teacher open the lab from her laptop, follow **[docs/DEPLOY-FREE.md](docs/DEPLOY-FREE.md)** (free Aiven MySQL + Render API + Vercel frontend).
-
-After deploy, send:
-
-```text
-Lab demo: https://YOUR-VERCEL-URL
-ER diagram: https://dbdiagram.io/d/gamlish_dbms_lab-6a803de8e093539a9ebf8e38
-Real Gamlish: https://gamlish.com
-```
+Redeploy notes: `docs/DEPLOY-FREE.md`.
 
 ---
 
-## What this is not
+## What this project is not
 
 - Not the live Gamlish SaaS
 - Not MongoDB
 - Not 21 missions, payments, or leaderboards
 
-Those belong to [gamlish.com](https://gamlish.com). This repo proves relational design, CRUD, auth, and progress tracking for CSE 224.
+Those belong to [gamlish.com](https://gamlish.com). This lab demonstrates relational design, foreign keys, CRUD, authentication, and progress tracking for CSE 224.

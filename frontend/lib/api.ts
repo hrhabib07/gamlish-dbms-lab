@@ -1,4 +1,8 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ??
+  (process.env.NODE_ENV === "production"
+    ? "https://gamlish-dbms-lab.onrender.com/api"
+    : "http://localhost:4000/api");
 const TOKEN_KEY = "gamlish_dbms_token";
 
 export type Role = "student" | "admin";
