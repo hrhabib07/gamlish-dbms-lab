@@ -1,4 +1,4 @@
-# Gamlish DBMS Lab
+# Gamlish DBMS Lab1
 
 **Gamlish: A Game-Based English Learning Platform**  
 CSE 224 · Database Management System Lab  
